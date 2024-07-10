@@ -6,25 +6,37 @@ const BASE_URL = "http://localhost:8000"
 
 function Body() {
     const { register, handleSubmit, formState: { errors } } = useForm();
-    const [formData,setFormData]= useState({
+    const [carsList,setCarsList] = useState([])
+    const [showData,setShowData] = useState(false)
+    const [formData,setFormData] = useState({
         licensePlate:'',
         brand:'',
         model:'',
         note:''
     });
 
-    useEffect(()=>{
-        const fetchData = async () => {
-            try {
-                const response = await axios.get(`${BASE_URL}/cars`)
-                console.log(response.data);
-            } catch (error) {
-                console.error('Error fetching cars:',error);
-            }
-        }
-        fetchData()    
-    },[]);
+    const [editCar,setEditCar] = useState(null)
 
+    const fetchData = async () => {
+        try {
+            setShowData(true)
+            const response = await axios.get(`${BASE_URL}/cars`)
+            setCarsList(response.data);
+        } catch (error) {
+            console.error('Error fetching cars:',error);
+        }
+    }
+
+    const updateCarDetail = async(id) => {
+        try {
+            const response = await axios.put(`${BASE_URL}/cars/${id}`,formData)
+            fetchData()
+            setEditCar(null)
+        } catch (error) {
+            console.error('Error update car',error);
+        }
+    }
+    
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData(prev => ({
@@ -33,7 +45,19 @@ function Body() {
         }))
     }
 
+    const handleEdit = (car) => {
+        setFormData(car)
+        setEditCar(car)
+        setValue('licensePlate', car.licensePlate);
+        setValue('brand', car.brand);
+        setValue('model', car.model);
+        setValue('note', car.note);
+    }
+
     const onSubmit = async data => {
+        if (editCar) {
+            await updateCarDetail(editCar.id)
+        }
         try {
             const response = await axios.post(`${BASE_URL}/cars`,{
                 licensePlate:formData.licensePlate,
@@ -41,7 +65,8 @@ function Body() {
                 model:formData.model,
                 note:formData.note
             })
-            console.log(response.data); 
+            console.log(response.data);
+            fetchData() 
         } catch (error) {
             console.error('Error adding car',error);
         }
@@ -100,6 +125,23 @@ function Body() {
             </div>
             <button type='submit'>ยืนยัน</button>
         </form>
+        <div>
+            <button onClick={fetchData}>Show all cars</button>
+            {showData ? 
+            carsList.map((val,key)=>{
+                return (
+                    <div>
+                        <div>
+                            <p>Name: {val.licensePlate}</p>
+                            <p>Name: {val.brand}</p>
+                            <p>Name: {val.model}</p>
+                            <p>Name: {val.note}</p>
+                            <button onClick={()=> handleEdit(val)}>Edit</button>
+                        </div>
+                    </div>
+                )
+            }) : " "}
+        </div>
     </div>    
   )
 }
