@@ -7,7 +7,7 @@ const BASE_URL = "http://localhost:8000"
 function Body() {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const [carsList,setCarsList] = useState([])
-    const [showData,setShowData] = useState(false)
+    const [showData,setShowData] = useState(true)
     const [formData,setFormData] = useState({
         licensePlate:'',
         brand:'',
@@ -18,8 +18,9 @@ function Body() {
     const [editCar,setEditCar] = useState(null)
 
     const fetchData = async () => {
+        setShowData(!showData)
+        console.log(showData);
         try {
-            setShowData(true)
             const response = await axios.get(`${BASE_URL}/cars`)
             setCarsList(response.data);
         } catch (error) {
@@ -54,6 +55,15 @@ function Body() {
         setValue('note', car.note);
     }
 
+    const deleteCar = async (id) => {
+        try {
+            await axios.delete(`${BASE_URL}/cars/${id}`)
+            fetchData()
+        } catch (error) {
+            console.error('Error delete car',error);
+        }
+    }
+
     const onSubmit = async data => {
         if (editCar) {
             await updateCarDetail(editCar.id)
@@ -67,10 +77,23 @@ function Body() {
             })
             console.log(response.data);
             fetchData() 
+            
         } catch (error) {
             console.error('Error adding car',error);
         }
+        resetForm()
     }        
+
+    const resetForm = () => {
+        setFormData({
+            licensePlate:'',
+            brand:'',
+            model:'',
+            note:''
+        })
+        setEditCar(null)
+    }
+    
   return (
     <div>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -123,24 +146,26 @@ function Body() {
                     onChange={handleChange} 
                 />
             </div>
-            <button type='submit'>ยืนยัน</button>
+            <button type='submit'>{editCar ? 'Update' : 'ยืนยัน'}</button>
+            {editCar && <button type="button" onClick={resetForm}>Cancel</button>}
         </form>
         <div>
-            <button onClick={fetchData}>Show all cars</button>
-            {showData ? 
+            <button onClick={fetchData}>{showData ? 'Hide all cars' : 'Show all cars'}</button>
+            {showData &&
             carsList.map((val,key)=>{
                 return (
                     <div>
                         <div>
-                            <p>Name: {val.licensePlate}</p>
-                            <p>Name: {val.brand}</p>
-                            <p>Name: {val.model}</p>
-                            <p>Name: {val.note}</p>
+                            <p>ทะเบียนรถ: {val.licensePlate}</p>
+                            <p>ยี่ห้อ: {val.brand}</p>
+                            <p>รุ่น: {val.model}</p>
+                            <p>หมายเหตุ: {val.note}</p>
                             <button onClick={()=> handleEdit(val)}>Edit</button>
+                            <button onClick={() => deleteCar(val.id)}>Delete</button>
                         </div>
                     </div>
                 )
-            }) : " "}
+            })}
         </div>
     </div>    
   )
