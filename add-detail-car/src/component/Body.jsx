@@ -1,5 +1,8 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from "react-hook-form";
+import axios from 'axios'
+
+const BASE_URL = "http://localhost:8000"
 
 function Body() {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -10,6 +13,18 @@ function Body() {
         note:''
     });
 
+    useEffect(()=>{
+        const fetchData = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/cars`)
+                console.log(response.data);
+            } catch (error) {
+                console.error('Error fetching cars:',error);
+            }
+        }
+        fetchData()    
+    },[]);
+
     const handleChange = (e) => {
         const {name, value} = e.target;
         setFormData(prev => ({
@@ -18,14 +33,18 @@ function Body() {
         }))
     }
 
-    const onSubmit = data => {
-        const newData = {
-            licensePlate:formData.licensePlate,
-            brand:formData.brand,
-            model:formData.model,
-            note:formData.note
+    const onSubmit = async data => {
+        try {
+            const response = await axios.post(`${BASE_URL}/cars`,{
+                licensePlate:formData.licensePlate,
+                brand:formData.brand,
+                model:formData.model,
+                note:formData.note
+            })
+            console.log(response.data); 
+        } catch (error) {
+            console.error('Error adding car',error);
         }
-        console.log(newData); 
     }        
   return (
     <div>
