@@ -18,8 +18,6 @@ function Body() {
     const [editCar,setEditCar] = useState(null)
 
     const fetchData = async () => {
-        setShowData(!showData)
-        console.log(showData);
         try {
             const response = await axios.get(`${BASE_URL}/cars`)
             setCarsList(response.data);
@@ -96,6 +94,11 @@ function Body() {
         })
         setEditCar(null)
     }
+
+    const handleToggle = ()=>{
+        setShowData(!showData)
+        fetchData()
+    }
     
   return (
     <div className='flex gap-20'>
@@ -166,7 +169,7 @@ function Body() {
             </form>
         </div>    
         <div className='mt-20'>
-            <button onClick={fetchData} className="bg-black shadow-md text-white rounded-md px-4 py-2 mb-4" >{showData ? 'Hide all cars' : 'Show all cars'}</button>
+            <button onClick={handleToggle} className="bg-black shadow-md text-white rounded-md px-4 py-2 mb-4" >{showData ? 'Hide all cars' : 'Show all cars'}</button>
             <div className='grid grid-cols-4 gap-4'>
                 {showData &&
                 carsList.map((val,key)=>{
